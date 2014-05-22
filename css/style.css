@@ -7,6 +7,14 @@
 	margin: auto;
 }
 
+canvas {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
 footer {
 	font-family: verdana;
 	font-size: 0.5em;
