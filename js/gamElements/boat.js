@@ -49,7 +49,7 @@ Boat.prototype.move = function(wind) {
 			this._x -= wind._speed / this._strength;
 		break;
 		default:
-			// there's no wind sailor!
+			// there's no even a sailor driving!
 	}
 
 	// and we can't be against copernicus' theories. So

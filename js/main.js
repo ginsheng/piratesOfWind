@@ -52,6 +52,10 @@ function draw(context) {
 	boat.move(wind);
 	boat.draw(context);
 	island.draw(context);
+	if (typeof whirl !== 'undefined') {
+		whirl.move(wind);
+		whirl.draw(context);
+	}
 }
 
 function set_ketListener() {
@@ -94,10 +98,21 @@ function toggle_pause() {
 }
 
 function change_wind() {
-	// clearInterval(wind_conditions);
+	// So, then wind conditions change on a probability of 25% (I guess)
 	var i = Math.floor(Math.random() * 4);
-	WEATHER_PROBABILITIES = Math.floor((Math.random() * 12) + 6);
-	console.log('Cambia el viento: ' + nautical_rose[i]);
+	// Also, randomly we'll se if a typhoon will appear on the sea
+	var typhoon_ = Math.floor((Math.random() * 3) + 1);
+	// Here we made influence on the windo based on random
 	wind.change({_speed: wind._speed, _direction: nautical_rose[i]} );
-	// wind_conditions = setInterval(change_wind(), 1000 * WEATHER_PROBABILITIES);
+	// if there's no typhoon on sea...
+	if (typeof whirl === 'undefined')
+		// and random results unlucky...
+		if (typhoon_ == 2) { // Tendremos un tifón 
+			var tifonX = Math.floor((Math.random() * 300) + 200);
+			var tifony = Math.floor((Math.random() * -20) + 100);
+			whirl = new Whirl({_x: tifonX, _y: tifony, _size: 45} );
+			// In order to be not so cruel with player. Typhoon has
+			// a short life of 9 seconds
+			setTimeout(function(){whirl = undefined}, 9000);
+		}
 }
