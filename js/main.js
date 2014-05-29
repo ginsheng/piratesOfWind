@@ -4,6 +4,7 @@ GAME_HEIGHT = 320;
 WEATHER_PROBABILITIES = 5; // seconds to change wind direction by first time
 paused = false;
 nautical_rose = ['north', 'south', 'east', 'west'];
+
 function start() {
 	var gameField = document.getElementById('gameField');
 
@@ -23,13 +24,23 @@ function start() {
 	wind = new Wind({_speed: 1.3, _direction: 'east'});
 
 	// creating boat
-	boat = new Boat({_height: 20, _width: 20});
+	boat = new Boat({
+		_size: {_height: 20, _width: 20},
+		_coordinates: {_x: 10, _y: 20},
+		_color: '#008080',
+		_shape: 'square',
+	});
 
 	// creating an island
 	var randomX = Math.floor((Math.random() * SEA_WIDTH) - 35);
 	var randomY = Math.floor((Math.random() * SEA_HEIGHT) + 35);
 	// console.debug('Coordenadas de la isla: ' + randomX + ', ' + randomX);
-	island = new Island({_height: 35, _width: 35, _x: randomX, _y: randomY});
+	island = new Island({
+		_size: {_height: 22, _width: 22},
+		_coordinates: {_x: randomX, _y: randomY},
+		_color: '#F5ED7D',
+		_shape: 'circle',
+	});
 
 	// adding the keyboard listener
 	set_ketListener();
@@ -49,9 +60,9 @@ function game_action() {
 
 function draw(context) {
 	context.clearRect(0, 0, SEA_WIDTH, SEA_HEIGHT);
+	island.draw(context);
 	boat.move(wind);
 	boat.draw(context);
-	island.draw(context);
 	if (typeof whirl !== 'undefined') {
 		whirl.move(wind);
 		whirl.draw(context);
@@ -110,7 +121,12 @@ function change_wind() {
 		if (typhoon_ == 2) { // Tendremos un tifón 
 			var tifonX = Math.floor((Math.random() * 300) + 200);
 			var tifony = Math.floor((Math.random() * -20) + 100);
-			whirl = new Whirl({_x: tifonX, _y: tifony, _size: 45} );
+			whirl = new Whirl({
+				_coordinates: {_x: tifonX, _y: tifony},
+				_size: { _width: 35},
+				_color: '#000080',
+				_shape: 'circle',
+			});
 			// In order to be not so cruel with player. Typhoon has
 			// a short life of 9 seconds
 			setTimeout(function(){whirl = undefined}, 9000);
