@@ -7,6 +7,8 @@ Nautical = function(data) {
 	this._color = '',
 	this._shape = '', // <-- Just for now we will drawing basic shapes
 	this._animation = [], // <-- Later will be using the magic of animation
+	this._isSolid = false, // <-- Now we can manage collisions (great!)
+	this._material = 0, // <-- 0 equals to 'water'. See method <addOn> on collision.js for details
 
 	this.load = function(init) {
 		if (init) {
@@ -15,7 +17,15 @@ Nautical = function(data) {
 			this._color = init._color;
 			this._shape = init._shape;
 			this._animation = init._animation;
+			this._isSolid = init._isSolid;
+			this._material = init._material;
 		}
+
+		if (this._isSolid)
+			if (collision !== undefined) {
+				this._collisionIndex = collision.addOn(this, this._material); // adding this to collision detector system
+				collision.generateMatrix(this);
+			}
 	}
 
 	this.load(_data);
@@ -47,14 +57,25 @@ Nautical = function(data) {
 			break;
 		}
 
+		// experimantal (just to check if collision matrix were created successfully)
+		if (this._collisionIndex !== undefined)
+			if (collision !== undefined)
+				collision.traceMe(c, this._collisionIndex);
+
 		// and since we don't want the rest of objects
 		// joins our ghost object to the non-dead land
 		// we return the alpha to 100%
 		c.globalAlpha = 1;
 	},
 
-	move = function(newCoordinates) {
-		console.debug('Something must be done here');
+	// this method updates collision-matrix's location on radar
+	// ideally, it should be automatically called on every nautical's
+	// instance at the moment to call <move> method. But for now
+	// you've to call it manually
+	this.__move = function() {
+		if (this._collisionIndex !== undefined)
+			if (collision !== undefined)
+				collision.generateMatrix(this);
 	}
 
 }

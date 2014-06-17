@@ -20,15 +20,23 @@ function start() {
 	SEA_WIDTH = GAME_WIDTH;
 	SEA_HEIGHT = GAME_HEIGHT;
 
+	// creating collision radar
+	collision = new CollisionMaster({
+		_gameArea: {_width: GAME_WIDTH, _height: GAME_HEIGHT},
+		_precision: 10,
+	})
+
 	// creating wind
 	wind = new Wind({_speed: 1.3, _direction: 'east'});
 
 	// creating boat
 	boat = new Boat({
 		_size: {_height: 20, _width: 20},
-		_coordinates: {_x: 10, _y: 20},
+		_coordinates: {_x: 5, _y: 5},
 		_color: '#008080',
 		_shape: 'square',
+		_isSolid: true,
+		_material: 4, // <-- 4 means 'player'. See method <addOn> on collision.js for details
 	});
 
 	// creating an island
@@ -40,6 +48,8 @@ function start() {
 		_coordinates: {_x: randomX, _y: randomY},
 		_color: '#F5ED7D',
 		_shape: 'circle',
+		_isSolid: true,
+		_material: 2, // <-- 2 means 'goal'
 	});
 
 	// adding the keyboard listener
@@ -50,12 +60,13 @@ function start() {
 }
 
 function game_action() {
-		game_beat = setInterval(function(){
-			draw(universe.getContext('2d'));
-		}, 1000/GAME_FPS);
-		wind_conditions = setInterval(function(){
-			change_wind();
-		}, 1000 * WEATHER_PROBABILITIES);
+	collision.generate();
+	game_beat = setInterval(function(){
+		draw(universe.getContext('2d'));
+	}, 1000/GAME_FPS);
+	wind_conditions = setInterval(function(){
+		change_wind();
+	}, 1000 * WEATHER_PROBABILITIES);
 }
 
 function draw(context) {
@@ -67,6 +78,7 @@ function draw(context) {
 		whirl.move(wind);
 		whirl.draw(context);
 	}
+	//collision.trace(context);
 }
 
 function set_ketListener() {
@@ -123,9 +135,11 @@ function change_wind() {
 			var tifony = Math.floor((Math.random() * -20) + 100);
 			whirl = new Whirl({
 				_coordinates: {_x: tifonX, _y: tifony},
-				_size: { _width: 35},
+				_size: { _width: 35, _height: 35},
 				_color: '#000080',
 				_shape: 'circle',
+				// _isSolid: true,
+				_material: 3, // <-- 3 means 'anything evil to a player'. See method <addOn> on collision.js for details
 			});
 			// In order to be not so cruel with player. Typhoon has
 			// a short life of 9 seconds

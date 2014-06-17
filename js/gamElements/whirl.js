@@ -15,6 +15,8 @@ function Whirl(init) {
 			this._coordinates._y += wind._speed/12;
 		if (wind._direction == 'north' || wind._direction == 'south')
 			this._coordinates._x += (wind._speed/12*-1);
+
+		this.__move();
 	}
 }
 

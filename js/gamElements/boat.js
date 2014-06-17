@@ -49,6 +49,8 @@ function Boat(init) {
 			this._coordinates._x = SEA_WIDTH;
 		if (this._coordinates._x > SEA_WIDTH)
 			this._coordinates._x = 0;
+
+		this.__move();
 	}
 }
 
