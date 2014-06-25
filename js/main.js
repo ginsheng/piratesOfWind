@@ -23,15 +23,15 @@ function start() {
 	// creating collision radar
 	collision = new CollisionMaster({
 		_gameArea: {_width: GAME_WIDTH, _height: GAME_HEIGHT},
-		_precision: 10,
+		_precision: 5,
 	})
 
 	// creating wind
-	wind = new Wind({_speed: 1.3, _direction: 'east'});
+	wind = new Wind({_speed: 1.5, _direction: 'east'});
 
 	// creating boat
 	boat = new Boat({
-		_size: {_height: 20, _width: 20},
+		_size: {_height: 20, _width: 30},
 		_coordinates: {_x: 5, _y: 5},
 		_color: '#008080',
 		_shape: 'square',
@@ -40,11 +40,11 @@ function start() {
 	});
 
 	// creating an island
-	var randomX = Math.floor((Math.random() * SEA_WIDTH) - 35);
-	var randomY = Math.floor((Math.random() * SEA_HEIGHT) + 35);
+	var randomX = Math.floor((Math.random() * SEA_WIDTH) - 25);
+	var randomY = Math.floor((Math.random() * SEA_HEIGHT) + 25);
 	// console.debug('Coordenadas de la isla: ' + randomX + ', ' + randomX);
 	island = new Island({
-		_size: {_height: 22, _width: 22},
+		_size: {_height: 25, _width: 25},
 		_coordinates: {_x: randomX, _y: randomY},
 		_color: '#F5ED7D',
 		_shape: 'circle',
@@ -54,7 +54,7 @@ function start() {
 
 	// adding the keyboard listener
 	set_ketListener();
-
+// boat.draw(universe.getContext('2d'));
 	// giving live to game
 	game_action();
 }
@@ -138,11 +138,11 @@ function change_wind() {
 				_size: { _width: 35, _height: 35},
 				_color: '#000080',
 				_shape: 'circle',
-				// _isSolid: true,
+				_isSolid: true,
 				_material: 3, // <-- 3 means 'anything evil to a player'. See method <addOn> on collision.js for details
 			});
 			// In order to be not so cruel with player. Typhoon has
 			// a short life of 9 seconds
-			setTimeout(function(){whirl = undefined}, 9000);
+			setTimeout(function(){ collision.removeMe(whirl._collisionIndex); whirl = undefined;}, 9000);
 		}
 }

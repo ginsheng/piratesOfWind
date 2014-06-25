@@ -42,10 +42,25 @@ CollisionMaster = function(game_data) {
 		var coordinates = ofWhat._coordinates;
 		var who = ofWhat._collisionIndex - 1;
 
-		var squaresX = size._width / this._precision;
-		var squaresY = size._height / this._precision;
+		var length = this.calculateArea(ofWhat);
+
+		// var squaresX = size._width / this._precision;
+		// var squaresY = size._height / this._precision;
+		var squaresX = squaresY = length / this._precision;
 
 		// console.debug('Tu objeto mide: ' + squaresX + ' por ' + squaresY);
+
+		// due to canvas' way to draw circles, we need to translate the coordinate
+		// of that kind of shapes
+		if (ofWhat._shape == 'circle')
+			coordinates = {_x: ofWhat._coordinates._x - ofWhat._size._width + this._precision,
+						   _y: ofWhat._coordinates._y - ofWhat._size._height + this._precision
+						  };
+		// also, I didn't think on rectangular shapes
+		if (ofWhat._shape == 'square' && ofWhat._size._height != ofWhat._size._width) {
+			squaresX = size._width / this._precision;
+			squaresY = size._height / this._precision;
+		}
 
 		var from = this.naturalToCardinal(coordinates);
 		var discreteMatrix = [];
@@ -53,19 +68,48 @@ CollisionMaster = function(game_data) {
 		// fill the matrix, from object's position to object's dimension
 		for (var i = 0; i < squaresX; i++) {
 			discreteMatrix[i] = new Array();
-			for (var j = 0; j < squaresY; j++)
-				// TODO: improve the formula here. It tends to act "triky" with non-square shapes
-				// also, if _presition is inferior to object's size, the matrix collapse (literally)
-				discreteMatrix[i].push({_x: (squaresX * i) + from._x - (1 * i), _y: (squaresY * j) + from._y - (1  * j) });
+			for (var j = 0; j < squaresY; j++){
+				
+				discreteMatrix[i][j] = (
+					{
+						_x: i + from._x,
+						_y: from._y + j
+					}
+				);
+
+				for (var c = 0; c < this.radar.length; c++)
+					if (c != who)
+						this.checkCollide(discreteMatrix[i][j], this.radar[c]);
+			}
 		}
 
 		this.radar[who]._discreteMatrix = discreteMatrix;
+		this.radar[who]._discreteSize = {_width: squaresX, _height: squaresY};
 		// console.debug(discreteMatrix);
 	}
 
 	// this method is util just to corroborate a collision matrix
-	this.trace = function(c, matrix) {
-		// console.debug(matrix);
+	this.trace = function(c, matrix, material) {
+		c.lineWidth = 0.5;
+		var color = '#000000';
+		switch(material) {
+			case 0:
+				color = '#FFFFFF';
+			break;
+			// case '1':
+			// 	color = '#000000';
+			// break;
+			case 2:
+				color = '#00FF00';
+			break;
+			case 3:
+				color = '#FF0000';
+			break;
+			case 4:
+				color = '#0000FF';
+			break;
+		}
+		c.strokeStyle = color;
 		for (var i = 0; i < matrix.length; i++)
 			for (var j = 0; j < matrix[i].length; j++) {
 				var coordinates = matrix[i][j];
@@ -77,7 +121,7 @@ CollisionMaster = function(game_data) {
 	this.traceMe = function (c, me) {
 		var whatAmI = this.radar[me-1];
 		if (whatAmI._discreteMatrix !== undefined)
-			this.trace(c, whatAmI._discreteMatrix);
+			this.trace(c, whatAmI._discreteMatrix, whatAmI._material);
 	}
 
 	// this translates natural (pixel) coordinates to cardinal (tinySquare) coordinates
@@ -126,6 +170,34 @@ CollisionMaster = function(game_data) {
 				var what = this.radar[i];
 				var naturalCoordinates = this.naturalToCardinal(what._where);
 			}
+	}
+
+	this.checkCollide = function(point, object) {
+		var matrix = object._discreteMatrix;
+		var size = object._discreteSize;
+		for (var i = 0; i < matrix.length; i++)
+			for (var j = 0; j < matrix[i].length; j++) {
+				var coordinates = matrix[i][j];
+				// console.debug(JSON.stringify(point) + ' vs. ' + JSON.stringify(coordinates));
+				if (point._x == coordinates._x && point._y == coordinates._y )
+					console.debug('There was a collision!');
+			}
+	}
+
+	this.calculateArea = function(ofWhat) {
+		switch (ofWhat._shape) {
+			case 'circle':
+				var area = Math.PI * Math.pow(ofWhat._size._height,2);
+				return Math.sqrt(area);
+			break;
+			case 'square':
+				return ofWhat._size._height;
+			break;
+		}
+	}
+
+	this.removeMe = function(colIndex) {
+		this.radar.splice(colIndex-1, 1);
 	}
 
 	this.load(game_data);
