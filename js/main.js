@@ -2,10 +2,17 @@ GAME_FPS = 30;
 GAME_WIDTH = 480;
 GAME_HEIGHT = 320;
 WEATHER_PROBABILITIES = 5; // seconds to change wind direction by first time
+MINES_ON_SEA = 3; // number of lethal mines on the sea
+MINES = [];
 paused = false;
+over = false;
+time = ({sec: 0, min: 0, hour: 0});
 nautical_rose = ['north', 'south', 'east', 'west'];
 
 function start() {
+
+	document.getElementById('welcome').style.display = 'none';
+
 	var gameField = document.getElementById('gameField');
 
 	universe = document.createElement('canvas');
@@ -52,9 +59,26 @@ function start() {
 		_material: 2, // <-- 2 means 'goal'
 	});
 
+	// adding a little bit of difficulty to game. We put a few lethal mines
+	// floating over there
+
+	for (var m = 0; m < MINES_ON_SEA; m++) {
+		var randomX = Math.floor((Math.random() * SEA_WIDTH) - 70);
+		var randomY = Math.floor((Math.random() * SEA_HEIGHT) + 70);
+		var mine = new Nautical({
+			_coordinates: {_x: randomX, _y: randomY},
+			_size: {_width: 10, _height: 10},
+			_color: 'red',
+			_shape: 'circle',
+			_isSolid: true,
+			_material: 3, // <-- 3 means 'somthing that kills player'
+			// _trace: true,
+		});
+		MINES[m] = mine;
+	} 
+
 	// adding the keyboard listener
 	set_ketListener();
-// boat.draw(universe.getContext('2d'));
 	// giving live to game
 	game_action();
 }
@@ -67,6 +91,7 @@ function game_action() {
 	wind_conditions = setInterval(function(){
 		change_wind();
 	}, 1000 * WEATHER_PROBABILITIES);
+	timer = setInterval(function(){timing();}, 1000);
 }
 
 function draw(context) {
@@ -78,6 +103,8 @@ function draw(context) {
 		whirl.move(wind);
 		whirl.draw(context);
 	}
+	for (var m = 0; m < MINES_ON_SEA; m++)
+		MINES[m].draw(context);
 	//collision.trace(context);
 }
 
@@ -110,14 +137,16 @@ function set_ketListener() {
 }
 
 function toggle_pause() {
-	paused = !paused;
+	if (!over) {
+		paused = !paused;
 
-	if (paused) {
-		clearInterval(game_beat);
-		clearInterval(wind_conditions);
+		if (paused) {
+			clearInterval(game_beat);
+			clearInterval(wind_conditions);
+		}
+		else
+			game_action();
 	}
-	else
-		game_action();
 }
 
 function change_wind() {
@@ -145,4 +174,27 @@ function change_wind() {
 			// a short life of 9 seconds
 			setTimeout(function(){ collision.removeMe(whirl._collisionIndex); whirl = undefined;}, 9000);
 		}
+}
+
+function game_finish(result) {
+	over = true;
+	clearInterval(game_beat);
+	clearInterval(wind_conditions);
+	clearInterval(timer);
+	alert(result._message + ' (Total time: ' + time.hour + ':' + time.min + ':' + time.sec + ')');
+	if (confirm('Wanna play again?'))
+		location.reload(false);
+}
+
+function timing() {
+	if (++time.sec > 60) {
+		time.sec = 0;
+		if (++time.min > 60) {
+			time.min = 0;
+			if (++time.hour > 24) {
+				time.hour = 0;
+				alert('you have been playing so long!');
+			}
+		}
+	}
 }

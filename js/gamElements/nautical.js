@@ -9,6 +9,7 @@ Nautical = function(data) {
 	this._animation = [], // <-- Later will be using the magic of animation
 	this._isSolid = false, // <-- Now we can manage collisions (great!)
 	this._material = 0, // <-- 0 equals to 'water'. See method <addOn> on collision.js for details
+	this._trace = false, // <-- this tells the collision system wheter to draw its collision matrix or not
 
 	this.load = function(init) {
 		if (init) {
@@ -19,6 +20,7 @@ Nautical = function(data) {
 			this._animation = init._animation;
 			this._isSolid = init._isSolid;
 			this._material = init._material;
+			this._trace = init._trace;
 		}
 
 		if (this._isSolid)
@@ -57,10 +59,10 @@ Nautical = function(data) {
 			break;
 		}
 
-		// experimantal (just to check if collision matrix were created successfully)
-		if (this._collisionIndex !== undefined)
-			if (collision !== undefined)
-				collision.traceMe(c, this._collisionIndex);
+		if (this._trace)
+			if (this._collisionIndex !== undefined)
+				if (collision !== undefined)
+					collision.traceMe(c, this._collisionIndex);
 
 		// and since we don't want the rest of objects
 		// joins our ghost object to the non-dead land

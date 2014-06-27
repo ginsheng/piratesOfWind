@@ -41,21 +41,17 @@ CollisionMaster = function(game_data) {
 		var size = ofWhat._size;
 		var coordinates = ofWhat._coordinates;
 		var who = ofWhat._collisionIndex - 1;
+		var length = this.radar[who]._area;
 
-		var length = this.calculateArea(ofWhat);
-
-		// var squaresX = size._width / this._precision;
-		// var squaresY = size._height / this._precision;
 		var squaresX = squaresY = length / this._precision;
-
-		// console.debug('Tu objeto mide: ' + squaresX + ' por ' + squaresY);
 
 		// due to canvas' way to draw circles, we need to translate the coordinate
 		// of that kind of shapes
 		if (ofWhat._shape == 'circle')
-			coordinates = {_x: ofWhat._coordinates._x - ofWhat._size._width + this._precision,
-						   _y: ofWhat._coordinates._y - ofWhat._size._height + this._precision
-						  };
+			coordinates = {
+				_x: ofWhat._coordinates._x - ofWhat._size._width + this._precision,
+			   _y: ofWhat._coordinates._y - ofWhat._size._height + this._precision
+			};
 		// also, I didn't think on rectangular shapes
 		if (ofWhat._shape == 'square' && ofWhat._size._height != ofWhat._size._width) {
 			squaresX = size._width / this._precision;
@@ -79,13 +75,12 @@ CollisionMaster = function(game_data) {
 
 				for (var c = 0; c < this.radar.length; c++)
 					if (c != who)
-						this.checkCollide(discreteMatrix[i][j], this.radar[c]);
+						this.checkCollide(this.radar[who], discreteMatrix[i][j], this.radar[c]);
 			}
 		}
 
 		this.radar[who]._discreteMatrix = discreteMatrix;
 		this.radar[who]._discreteSize = {_width: squaresX, _height: squaresY};
-		// console.debug(discreteMatrix);
 	}
 
 	// this method is util just to corroborate a collision matrix
@@ -103,7 +98,7 @@ CollisionMaster = function(game_data) {
 				color = '#00FF00';
 			break;
 			case 3:
-				color = '#FF0000';
+				color = '#FF0F00';
 			break;
 			case 4:
 				color = '#0000FF';
@@ -145,10 +140,12 @@ CollisionMaster = function(game_data) {
 		// 2: 'goal' (that material which we construct the goal poit, in this case, the island)
 		// 3: 'siniester' (everything that destroys a player... Or even non-playable things, like the island)
 		// 4: 'player' (that which a player is build with)
+		var area = this.calculateArea(who);
 		var object = {
 			_coordinates: who._coordinates,
 			_size: who._size,
-			_material: material
+			_material: material,
+			_area: area,
 		}
 		this.radar.push(object);
 		return (this.radar.length);
@@ -157,32 +154,23 @@ CollisionMaster = function(game_data) {
 	// here's where things goes interisting.
 	// We anounce to an object if have collided whit something
 	// and more important: what kind of thing it collies with.
-	// The "me" parameter refers to the objects position on 
-	// the collisionMaster radar
-	this.didICollide = function(me, position) {
-		// to do that, we will iterate our "objects" list
-		// (skiping "me")
-		// and see if our objects matrix position/size
-		// fits somethig on the sea.
-		var whatAmI = this.radar[me];
-		for (var i = 0; i < this.radar.length; i ++)
-			if (me != i) {
-				var what = this.radar[i];
-				var naturalCoordinates = this.naturalToCardinal(what._where);
-			}
-	}
-
-	this.checkCollide = function(point, object) {
+	this.checkCollide = function(me, point, object) {
 		var matrix = object._discreteMatrix;
 		var size = object._discreteSize;
 		for (var i = 0; i < matrix.length; i++)
-			for (var j = 0; j < matrix[i].length; j++) {
-				var coordinates = matrix[i][j];
-				// console.debug(JSON.stringify(point) + ' vs. ' + JSON.stringify(coordinates));
-				if (point._x == coordinates._x && point._y == coordinates._y )
-					console.debug('There was a collision!');
-			}
-	}
+			for (var j = 0; coordinates = matrix[i][j], j < matrix[i].length; j++)
+				if (point._x == coordinates._x && point._y == coordinates._y ) {
+					// I need to think what to do when a collision occurs
+					var message = me._material + ' vs. ' + object._material;
+					if (me._material == 4 && object._material == 3)
+						message = 'Game over man! Game over';
+					else
+						if (me._material == 4 && object._material == 2)
+							message = 'Yeah! You did it!';
+					if (!over && (me._material == 4 || object._material == 4))
+						game_finish({_message: message});
+				}
+		}
 
 	this.calculateArea = function(ofWhat) {
 		switch (ofWhat._shape) {
